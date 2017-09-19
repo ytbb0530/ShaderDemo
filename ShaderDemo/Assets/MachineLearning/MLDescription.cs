@@ -43,20 +43,30 @@ public class MLDescription
 		MLDescription desc_2 = new MLDescription (2);
 
 		foreach (MLNode node in enviroment.nodes) {
-			float length = node.speed * 1f;
 			Vector3 localPosition = node.transform.position - player.transform.position;
-			if (localPosition.magnitude < length) {
+			if (localPosition.magnitude < 10) {
+				Vector2 localPos = new Vector2 (blurCount (localPosition.x), blurCount (localPosition.y));
+				Vector2 forward = new Vector2 ((int)node.transform.forward.x, (int)node.transform.forward.y);
 				if (node.type == 1) {
-					desc_2.nearNodes.Add (new Vector2(localPosition.x, localPosition.y));
-					desc_2.nearForwards.Add (new Vector2(node.transform.forward.x, node.transform.forward.y));
+					desc_2.nearNodes.Add (localPos);
+					desc_2.nearForwards.Add (forward);
 				} else {
-					desc_1.nearNodes.Add (new Vector2(localPosition.x, localPosition.y));
-					desc_1.nearForwards.Add (new Vector2(node.transform.forward.x, node.transform.forward.y));
+					desc_1.nearNodes.Add (localPos);
+					desc_1.nearForwards.Add (forward);
 				}
 			}
 		}
 
 		return new MLDescription[]{desc_0, desc_1, desc_2};
+	}
+
+	private static int blurCount(float num)
+	{
+		for (int i = 3; i <= 9; i += 3) {
+			if (num < i + 1.5f) return i;
+		}
+
+		return 0;
 	}
 
 	public int Approximate(MLDescription desc)
@@ -87,10 +97,12 @@ public class MLDescription
 
 	private bool ApproximateNode(MLDescription desc)
 	{
+		if (nearNodes.Count == 0) return false;
+
 		if (nearNodes.Count == desc.nearNodes.Count) {
 			foreach(Vector2 thisPos in nearNodes){
 				foreach(Vector2 pos in desc.nearNodes){
-					if (Vector2.Distance (thisPos, pos) > 1f) {
+					if (Vector2.Distance (thisPos, pos) > 2f) {
 						return false;
 					}
 				}

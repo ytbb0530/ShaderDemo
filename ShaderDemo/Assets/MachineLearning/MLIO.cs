@@ -13,8 +13,17 @@ public class MLIO : MonoBehaviour
 	{
 		enviroment = GetComponent<MLEnviroment> ();
 		agent = enviroment.player;
-
 		LoadData ();
+
+//		StartCoroutine (SaveClock());
+	}
+
+	private IEnumerator SaveClock()
+	{
+		while (true) {
+			yield return new WaitForSeconds (3600f);
+			SaveData ();
+		}
 	}
 
 	public void SaveData ()
@@ -22,6 +31,7 @@ public class MLIO : MonoBehaviour
 		enviroment.pause();
 		List<string> pairs = agent.getData ();
 		write (pairs);
+		Debug.Log ("Save Data Completed " + System.DateTime.Now);
 		enviroment.resume();
 	}
 
@@ -31,6 +41,8 @@ public class MLIO : MonoBehaviour
 		List<string> pairs = read ();
 		setData (pairs);
 		enviroment.resume();
+
+		StartCoroutine (SaveClock());
 	}
 
 	private void write(List<string> pairs)
@@ -60,7 +72,7 @@ public class MLIO : MonoBehaviour
 
 	private void setData(List<string> pairs)
 	{
-		Dictionary<int, float[]> dictScore = new Dictionary<int, float[]> ();
+		Dictionary<int, Vector2> dictAngle = new Dictionary<int, Vector2> ();
 
 		Dictionary<int, int> dictFeature = new Dictionary<int, int> ();
 		Dictionary<int, Vector2> dictPlayer = new Dictionary<int, Vector2> ();
@@ -76,13 +88,10 @@ public class MLIO : MonoBehaviour
 			string keyType = keySplit [0];
 			int count = int.Parse(keySplit [1]);
 
-			if (keyType.Equals ("score")) {
-				string[] scoreStrs = value.Split (',');
-				float[] ss = new float[5];
-				for (int j = 0; j < 5; j++) {
-					ss [j] = float.Parse (scoreStrs [j]);
-				}
-				dictScore.Add (count, ss);
+			if (keyType.Equals ("angle")) {
+				string[] angleStrs = value.Split (',');
+				Vector2 ss = new Vector2(float.Parse (angleStrs [0]), float.Parse (angleStrs [1]));
+				dictAngle.Add (count, ss);
 			} else if (keyType.Equals ("feature")) {
 				dictFeature.Add (count, int.Parse (value));
 			} else if (keyType.Equals ("p")) {
@@ -120,10 +129,10 @@ public class MLIO : MonoBehaviour
 		descriptions.Add (new List<MLDescription>());
 		descriptions.Add (new List<MLDescription>());
 
-		List<List<float[]>> scores = new List<List<float[]>>();
-		scores.Add (new List<float[]>());
-		scores.Add (new List<float[]>());
-		scores.Add (new List<float[]>());
+		List<List<Vector2>> angles = new List<List<Vector2>>();
+		angles.Add (new List<Vector2>());
+		angles.Add (new List<Vector2>());
+		angles.Add (new List<Vector2>());
 
 		foreach (int key in dictFeature.Keys) {
 			int feature = dictFeature[key];
@@ -149,10 +158,10 @@ public class MLIO : MonoBehaviour
 			}
 
 			descriptions [feature].Add (desc);
-			scores [feature].Add (dictScore[key]);
+			angles [feature].Add (dictAngle[key]);
 		}
 
-		agent.setData (descriptions, scores);
+		agent.setData (descriptions, angles);
 	}
 
 }

@@ -19,7 +19,9 @@ public class MLEnviroment : MonoBehaviour
 
 	private float tempTime;
 	private float maxTime;
-	private float timeScale = 20f;
+	private float timeScale;
+
+	private const float MAX_TIME_SCALE = 10;
 
 	void Start () 
 	{
@@ -60,12 +62,15 @@ public class MLEnviroment : MonoBehaviour
 			gc.transform.position = new Vector3 (randomPoint.x, randomPoint.y, 0);
 
 			Vector2 forward2D = Random.insideUnitCircle * 50;
-			Vector3 forward = new Vector3(forward2D.x, forward2D.y, 0) - gc.transform.position;
+			Vector3 forward = new Vector3 (forward2D.x, forward2D.y, 0) - gc.transform.position;
+			forward = forward.normalized;
+			if (forward.x < -.3f) forward.x = -1; else if (forward.x > .3f) forward.x = 1; else forward.x = 0;
+			if (forward.y < -.3f) forward.y = -1; else if (forward.y > .3f) forward.y = 1; else forward.y = 0;
 			gc.transform.forward = new Vector3 (forward.x, forward.y, 0);
 
 			MLNode node = gc.AddComponent<MLNode> ();
 			node.type = type;
-			node.speed = Random.Range (8f, 14f);
+			node.speed = 12;
 			node.enviroment = this;
 			nodes.Add (node);
 
@@ -103,7 +108,7 @@ public class MLEnviroment : MonoBehaviour
 
 	public void setTimeScale()
 	{
-		timeScale = slider.value * 19f + 1f;
+		timeScale = slider.value * (MAX_TIME_SCALE - 1f) + 1f;
 		Time.timeScale = timeScale;
 		textTimeScale.text = timeScale.ToString ("f1");
 	}

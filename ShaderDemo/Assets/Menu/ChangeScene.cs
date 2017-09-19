@@ -64,4 +64,9 @@ public class ChangeScene : MonoBehaviour
 		Application.LoadLevel("TextureAnimation/TexAnim");
 	}
 
+	public void changeScene2Snake()
+	{
+		Application.LoadLevel ("Snake/Snake");
+	}
+
 }

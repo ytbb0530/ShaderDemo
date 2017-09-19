@@ -6,14 +6,6 @@ using UnityEngine.UI;
 
 public class MLAgent : MonoBehaviour
 {
-	public enum ACTION {
-		STAY,
-		UP,
-		DOWN,
-		LEFT,
-		RIGHT,
-	}
-
 	public MLEnviroment enviroment;
 	public Text textFeatureCount_1;
 	public Text textFeatureCount_2;
@@ -22,22 +14,23 @@ public class MLAgent : MonoBehaviour
 	public Text textCount;
 
 	private List<List<MLDescription>> descriptions;
-	private List<List<float[]>> scores;
-	private ACTION curAction;
+	private List<List<Vector2>> angles;
 	private int curDescriptionIndex;
 	private int curFeatureIndex;
+	private float curActionAngle;
 	private float award;
 
-	private const float AWARD_RATE = 20f;
+	private const float AWARD_RATE = .05f;
 	private float[] HEAVY_RATE = new float[]{.5f, .4f, .1f};
+	private const bool FORMAL = true;
 
 	void Awake()
 	{
 		descriptions = new List<List<MLDescription>> ();
-		scores = new List<List<float[]>> ();
+		angles = new List<List<Vector2>> ();
 		for (int i = 0; i < 3; i++) {
 			descriptions.Add (new List<MLDescription>());
-			scores.Add (new List<float[]> ());
+			angles.Add (new List<Vector2>());
 		}
 	}
 
@@ -77,8 +70,11 @@ public class MLAgent : MonoBehaviour
 
 	private void DoAction()
 	{
-		float[] defaultScore = new float[]{ 1000, 1000, 1000, 1000, 1000 };
-		float[][] curScores = new float[][]{defaultScore, defaultScore, defaultScore};
+		List<Vector2> curAngle = new List<Vector2> ();
+		for (int i = 0; i < 3; i++) {
+//			curAngle.Add (new Vector2(Random.Range(0, 360), Random.Range(0, 360)));
+			curAngle.Add (new Vector2(0, 180));
+		}
 		bool[] curHasDesc = new bool[]{false, false, false};
 		MLDescription[] curDescs = MLDescription.getCurDescription (enviroment);
 		curFeatureIndex = -1;
@@ -90,10 +86,12 @@ public class MLAgent : MonoBehaviour
 			List<MLDescription> featureList = descriptions [feature];
 			for(int i = 0; i < featureList.Count; i++) {
 				MLDescription desc = featureList [i];
+
 				int approximate = curDesc.Approximate (desc);
 				if (approximate == feature) {
 					curHasDesc [feature] = true;
-					curScores[feature] = scores [feature] [i];
+					curAngle[feature] = angles [feature] [i];
+
 					curFeatureIndex = feature;
 					curDescriptionIndex = i;
 					break;
@@ -101,7 +99,7 @@ public class MLAgent : MonoBehaviour
 			}
 
 			if (!curHasDesc [feature]) {
-				scores [feature].Add (curScores [feature]);
+				angles [feature].Add (curAngle [feature]);
 				featureList.Add (curDesc);
 			}
 			curDescriptionIndex = curDescriptionIndex < 0 ? (-1 * (featureList.Count)) : curDescriptionIndex;
@@ -109,86 +107,63 @@ public class MLAgent : MonoBehaviour
 		}
 
 		curDescriptionIndex = Mathf.Abs(curDescriptionIndex < 0 ? (curDescriptionIndex + 1) : curDescriptionIndex);
-		curFeatureIndex = Mathf.Abs (curFeatureIndex < 0 ? (curFeatureIndex + 1) : curFeatureIndex);
-
-		// 综合之前的经验
-		float[] curScore = new float[]{ -1, -1, -1, -1, -1 };
-		for(int feature = 0; feature < 3; feature++){
-			bool has = curHasDesc [feature];
-			if (has) {
-				for(int i = 0; i < curScore.Length; i++){
-					if (curScore [i] == -1) {
-						curScore [i] = curScores [feature] [i];
-					} else {
-						curScore [i] = Mathf.Lerp (curScores [feature] [i], curScore[i], HEAVY_RATE[feature]);
-					}
-				}
-			}
-		}
+//		curFeatureIndex = Mathf.Abs (curFeatureIndex < 0 ? (curFeatureIndex + 1) : curFeatureIndex);
 
 		// 产生随机行为
-		float range = 0;
-		for(int i = 0; i <= (int)ACTION.RIGHT; i++){
-			float total = 0;
-			for(int j = 0; j <= (int)ACTION.RIGHT; j++){
-				if (i != j) {
-					total += curScore [j] < 1 ? 1 : curScore [j];
-				}
-			}
-			if (curScore [i] > total * 10) {
-				range = -1;
-				curAction = (ACTION)i;
-				break;
-			}
-
-			range += curScore [i] < 1 ? 1 : curScore [i];
-		}
-
-		if (range > 0) {
-			float random = Random.Range (0, range);
-			range = 0;
-			for (int i = 0; i <= (int)ACTION.RIGHT; i++) {
-				range += curScore [i] < 1 ? 1 : curScore [i];
-				if (random < range) {
-					curAction = (ACTION)i;
-					break;
-				}
+		float random = Random.value;
+		if (curFeatureIndex < 0) {
+			curActionAngle = random * 360;
+			curFeatureIndex = 0;
+			curDescriptionIndex = 0;
+		} else if (random < .3f || FORMAL) {
+			curActionAngle = curAngle [curFeatureIndex].x;
+		} else if (random > .9f) {
+			curActionAngle = curAngle [curFeatureIndex].y;
+		} else if (Mathf.DeltaAngle (curAngle [curFeatureIndex].x, curAngle [curFeatureIndex].y) < 30f) {
+			curActionAngle = Random.Range (0f, 360f);
+		} else {
+			random = random / .6f - .5f;
+			bool flag = ((int)(random * 100)) % 2 == 0;
+			if (flag) {
+				curActionAngle = Mathf.LerpAngle (curAngle [curFeatureIndex].x, curAngle [curFeatureIndex].y, random);
+			} else {
+				curActionAngle = Mathf.LerpAngle (curAngle [curFeatureIndex].y + 360, curAngle [curFeatureIndex].x, random);
 			}
 		}
 
-		Vector3 speed = Vector3.zero;
-		if (curAction == ACTION.STAY) {
-		} else if (curAction == ACTION.UP) {
-			speed = Vector3.up;
-		} else if (curAction == ACTION.DOWN) {
-			speed = Vector3.down;
-		} else if (curAction == ACTION.LEFT) {
-			speed = Vector3.left;
-		} else if (curAction == ACTION.RIGHT) {
-			speed = Vector3.right;
-		}
+		transform.localEulerAngles = new Vector3 (curActionAngle, -90, 90);
+		Vector3 targetPosition = transform.position + transform.forward * Time.deltaTime * 5;
+		targetPosition.z = 0;
 
-		Vector3 targetPosition = transform.position + speed * Time.deltaTime * 5;
 		if (targetPosition.magnitude < 30) {
 			transform.position = targetPosition;
 		} else {
 			award = AWARD_RATE * -10;
+//			curFeatureIndex = 0;
 		}
 	}
 
 	public void Train(float award)
 	{
-		scores [curFeatureIndex] [curDescriptionIndex] [(int)curAction] += award;
+		Vector2 angle = angles [curFeatureIndex] [curDescriptionIndex];
+
+		if (award > 0) {
+			angle.x = Mathf.LerpAngle (angle.x, curActionAngle, award);
+		} else if (award < 0) {
+			angle.y = Mathf.LerpAngle (angle.y, curActionAngle, Mathf.Abs(award));
+		}
+
+		angles [curFeatureIndex] [curDescriptionIndex] = angle;
 	}
 
 	private void Clean()
 	{
 		List<Vector2> list = new List<Vector2> ();
-		for(int i = scores.Count - 1; i >= 0; i--){
-			List<float[]> ss = scores [i];
-			for(int j = ss.Count - 1; j >= 0; j--){
-				float[] s = ss [j];
-				if (s [0] == 1000 && s [1] == 1000 && s [2] == 1000 && s [3] == 1000 && s [4] == 1000) {
+		for(int i = angles.Count - 1; i >= 0; i--){
+			List<Vector2> ass = angles [i];
+			for(int j = ass.Count - 2; j >= 0; j--){
+				Vector2 a = ass [j];
+				if (a.x == 0 && a.y == 180) {
 					list.Add (new Vector2(i, j));
 				}
 			}
@@ -199,11 +174,7 @@ public class MLAgent : MonoBehaviour
 			int j = (int)ij.y;
 
 			descriptions [i].RemoveAt (j);
-			scores [i].RemoveAt (j);
-			if (descriptions [i].Count == 0) {
-				descriptions.RemoveAt (i);
-				scores.RemoveAt (i);
-			}
+			angles [i].RemoveAt (j);
 		}
 	}
 
@@ -223,10 +194,11 @@ public class MLAgent : MonoBehaviour
 		award = node.type * AWARD_RATE;
 		if (node.type == 1) {
 			enviroment.addTime ();
+//			curFeatureIndex = 2;
 		} else {
 			enviroment.resetTime ();
+//			curFeatureIndex = 1;
 		}
-		// Train (reward);
 
 		node.Remove ();
 	}
@@ -237,12 +209,12 @@ public class MLAgent : MonoBehaviour
 		int count = 0;
 		for (int i = 0; i < descriptions.Count; i++) {
 			List<MLDescription> list = descriptions [i];
-			List<float[]> scoreList = scores [i];
+			List<Vector2> angleList = angles [i];
 			for (int j = 0; j < list.Count; j++) {
 				MLDescription desc = list [j];
-				float[] score = scoreList [j];
+				Vector2 angle = angleList [j];
 
-				addPairs (pairs, "score_" + count, score[0] + "," + score[1] + "," + score[2] + "," + score[3] + "," + score[4]);
+				addPairs (pairs, "angle_" + count, angle.x + "," + angle.y);
 				addPairs (pairs, "feature_" + count, "" + desc.getFeature ());
 
 				if (desc.getFeature () == 0) {
@@ -272,10 +244,10 @@ public class MLAgent : MonoBehaviour
 		pairs.Add (key + ":" + value);
 	}
 
-	public void setData(List<List<MLDescription>> _descriptions, List<List<float[]>> _scores)
+	public void setData(List<List<MLDescription>> _descriptions, List<List<Vector2>> _angles)
 	{
 		descriptions = _descriptions;
-		scores = _scores;
+		angles = _angles;
 	}
 
 }

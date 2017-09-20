@@ -39,6 +39,7 @@ public class SnakeIO : MonoBehaviour
 	private IEnumerator SaveClock()
 	{
 		while (SnakeMap.training) {
+			Debug.Log ("Waiting for time to Save ...");
 			yield return new WaitForSeconds (3600f);
 			Save ();
 		}
@@ -46,7 +47,9 @@ public class SnakeIO : MonoBehaviour
 
 	public void Save()
 	{
+		#if UNITY_EDITOR
 		state = 1;
+		#endif
 	}
 
 	public void Load()
@@ -63,7 +66,13 @@ public class SnakeIO : MonoBehaviour
 
 	private void Write(List<string> pairs)
 	{
-		StreamWriter sw = File.CreateText(Application.dataPath + "/Snake/data.txt");//打开现有 UTF-8 编码文本文件以进行读取
+		string path = "";
+		#if UNITY_EDITOR
+		path = Application.dataPath + "/StreamingAssets";
+		#elif UNITY_IPHONE
+		path = Application.streamingAssetsPath;
+		#endif
+		StreamWriter sw = File.CreateText(path + "/Snake/data.txt");//打开现有 UTF-8 编码文本文件以进行读取
 		sw.WriteLine("Time:" + System.DateTime.Now);
 		foreach (string str in pairs) {
 			sw.WriteLine(str);
@@ -86,7 +95,14 @@ public class SnakeIO : MonoBehaviour
 	private List<string> read()
 	{
 		List<string> pairs = new List<string> ();
-		StreamReader sr = File.OpenText (Application.dataPath + "/Snake/data.txt");
+
+		string path = "";
+		#if UNITY_EDITOR
+		path = Application.dataPath + "/StreamingAssets";
+		#elif UNITY_IPHONE
+		path = Application.streamingAssetsPath;
+		#endif
+		StreamReader sr = File.OpenText (path + "/Snake/data.txt");
 
 		string str;
 		while((str = sr.ReadLine() ) != null){

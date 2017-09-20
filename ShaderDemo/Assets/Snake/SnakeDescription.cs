@@ -103,35 +103,25 @@ public class SnakeStatus
 }
 
 /// <summary>
-/// 贪吃蛇环境描述：蛇头周围关键点
-///  00    01    02
-///     03 04 05
-///  06 07    08 09
-///     10 11 12
-///  13    14    15
+/// 贪吃蛇环境描述：拐点
 /// </summary>
 public class SnakeCornerDescription
 {
-	public List<bool> points;
+	public List<SnakeVector> corner;
 	public float[] score;
-
-	private static Dictionary<SnakeVector, int> POSITION_MAP;
 
 	public SnakeCornerDescription()
 	{
-		points = new List<bool> ();
-		for (int i = 0; i < 16; i++) {
-			points.Add (false);
-		}
+		corner = new List<SnakeVector> ();
 		score = new float[]{0, 0, 0, 0};
 	}
 
 	public string GetData()
 	{
 		string data = "";
-		for (int i = 0; i < points.Count; i++) {
-			if (i > 0) data += ",";
-			data += points [i] ? 1 : 0;
+		for (int i = 0; i < corner.Count; i++) {
+			if (i > 0) data += "|";
+			data += corner [i].x + "," + corner [i].y;
 		}
 		data += "_";
 		for (int i = 0; i < score.Length; i++) {
@@ -143,9 +133,9 @@ public class SnakeCornerDescription
 
 	public static bool operator ==(SnakeCornerDescription a, SnakeCornerDescription b)
 	{
-		if (a.points.Count != b.points.Count) return false;
-		for (int i = 0; i < a.points.Count; i++) {
-			if (a.points [i] != b.points [i]) {
+		if (a.corner.Count != b.corner.Count) return false;
+		for (int i = 0; i < a.corner.Count; i++) {
+			if (a.corner [i] != b.corner [i]) {
 				return false;
 			}
 		}
@@ -155,30 +145,6 @@ public class SnakeCornerDescription
 	public static bool operator !=(SnakeCornerDescription a, SnakeCornerDescription b)
 	{
 		return !(a == b);
-	}
-
-	public static Dictionary<SnakeVector, int> GetPositionMap()
-	{
-		if (POSITION_MAP == null) {
-			POSITION_MAP = new Dictionary<SnakeVector, int> ();
-			POSITION_MAP.Add (new SnakeVector (-2, 2), 0);
-			POSITION_MAP.Add (new SnakeVector (0, 2), 1);
-			POSITION_MAP.Add (new SnakeVector (2, 2), 2);
-			POSITION_MAP.Add (new SnakeVector (-1, 1), 3);
-			POSITION_MAP.Add (new SnakeVector (0, 1), 4);
-			POSITION_MAP.Add (new SnakeVector (1, 1), 5);
-			POSITION_MAP.Add (new SnakeVector (-2, 0), 6);
-			POSITION_MAP.Add (new SnakeVector (-1, 0), 7);
-			POSITION_MAP.Add (new SnakeVector (1, 0), 8);
-			POSITION_MAP.Add (new SnakeVector (2, 0), 9);
-			POSITION_MAP.Add (new SnakeVector (-1, -1), 10);
-			POSITION_MAP.Add (new SnakeVector (0, -1), 11);
-			POSITION_MAP.Add (new SnakeVector (1, -1), 12);
-			POSITION_MAP.Add (new SnakeVector (-2, -2), 13);
-			POSITION_MAP.Add (new SnakeVector (0, -2), 14);
-			POSITION_MAP.Add (new SnakeVector (2, -2), 15);
-		}
-		return POSITION_MAP;
 	}
 
 }
@@ -282,11 +248,11 @@ public class SnakeDescription
 		SnakeVector[] positions = agent.snakePositions;
 
 		cornerDesc = new SnakeCornerDescription ();
-		for (int i = 1; i < positions.Length; i++) {
-			SnakeVector pos = positions [i] - positions[0];
-			if (SnakeCornerDescription.GetPositionMap ().ContainsKey (pos)) {
-				int index = SnakeCornerDescription.GetPositionMap () [pos];
-				cornerDesc.points [index] = true;
+		int same = positions [1].SameLine (positions[0]);
+		for(int i = 2; i < positions.Length; i++){
+			int s = positions [i].SameLine (positions[i-1]);
+			if (s != same || i == positions.Length - 1) {
+				cornerDesc.corner.Add (positions[i-1] - positions[0]);
 			}
 		}
 

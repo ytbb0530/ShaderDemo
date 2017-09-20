@@ -39,7 +39,6 @@ public class SnakeIO : MonoBehaviour
 	private IEnumerator SaveClock()
 	{
 		while (SnakeMap.training) {
-			Debug.Log ("Waiting for time to Save ...");
 			yield return new WaitForSeconds (3600f);
 			Save ();
 		}

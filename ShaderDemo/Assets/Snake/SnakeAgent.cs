@@ -155,8 +155,8 @@ public class SnakeAgent : MonoBehaviour
 		textCornerCount.text = cornerDescriptions.Count + " C";
 		textHeadCount.text = headDescriptions.Count + " H";
 		textFoodCount.text = foodDescriptions.Count + " F";
-		textStep.text = (SnakeMap.training ? maxStep : curStep) + "";
-		textScore.text = (SnakeMap.training ? maxScore : curScore) + "";
+		textStep.text = curStep + "";
+		textScore.text = curScore + "";
 	}
 
 	private Action getCurAction()
@@ -311,13 +311,13 @@ public class SnakeAgent : MonoBehaviour
 		// 吃食物奖励
 		if (headPos.x == map.foodPos.x && headPos.y == map.foodPos.y) {
 			// 限定最长为10
-			if (positions.Count < 10) {
+			if (positions.Count < map.mapWidth * map.mapHeight * .75f) {
 				if (SnakeMap.training) {
-					// 训练模式中，200个食物长一截
-					if (curScore % 200 == 0) {
+					// 训练模式中，N个食物长一截
+//					if (curScore % (20 * positions.Count * positions.Count) == 0) {
 						positions.Add (endPos);
 						addSnakeUnitObject (endPos);
-					}
+//					}
 				} else {
 					positions.Add (endPos);
 					addSnakeUnitObject (endPos);
@@ -352,6 +352,7 @@ public class SnakeAgent : MonoBehaviour
 	{
 		SnakeStatus status = curStatus.previous;
 		if (status == null) {
+			Debug.Log ("Restart With length:" + positions.Count + " step:" + curStep + " score:" + curScore + " at " + System.DateTime.Now);
 			Init ();
 			return;
 		}
@@ -431,11 +432,10 @@ public class SnakeAgent : MonoBehaviour
 				SnakeCornerDescription cornerDesc = new SnakeCornerDescription ();
 				cornerDesc.score = scores;
 
-				string[] corners = value.Split ('|');
-				for(int j = 0; value.Length > 0 && j < corners.Length; j++){
-					string strPoint = corners [j];
-					string[] ps = strPoint.Split (',');
-					cornerDesc.corner.Add (new SnakeVector(int.Parse(ps[0]), int.Parse(ps[1])));
+				string[] ps = value.Split (',');
+				for (int j = 0; j < ps.Length; j++) {
+					int p = int.Parse (ps[j]);
+					cornerDesc.points [j] = p != 0;
 				}
 				cornerDescriptions.Add (cornerDesc);
 			} else if (key.StartsWith ("head_")) {

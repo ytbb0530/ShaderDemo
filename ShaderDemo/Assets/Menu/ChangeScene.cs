@@ -69,4 +69,9 @@ public class ChangeScene : MonoBehaviour
 		Application.LoadLevel ("Snake/Snake");
 	}
 
+	public void changScene2Video()
+	{
+		Application.LoadLevel ("VideoPlayer/VideoPlayer");
+	}
+
 }

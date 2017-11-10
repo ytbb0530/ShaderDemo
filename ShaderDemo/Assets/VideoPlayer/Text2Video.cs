@@ -37,13 +37,14 @@ public class Text2Video : MonoBehaviour
 		}
 	}
 
-	private float getLuminance(Color color) {
-		return 1f - (0.2125f * color.r + 0.7154f * color.g + 0.0721f * color.b); 
-	}
-
 	private void read()
 	{
-		string path = Application.dataPath + "/StreamingAssets";
+		string path = "";
+		#if UNITY_EDITOR
+		path = Application.dataPath + "/StreamingAssets";
+		#elif UNITY_IPHONE
+		path = Application.streamingAssetsPath;
+		#endif
 		StreamReader sr = File.OpenText (path + "/VideoPlayer/ppap.txt");
 
 		frameList = new List<string> ();

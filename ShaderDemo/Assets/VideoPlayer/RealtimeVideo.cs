@@ -10,9 +10,10 @@ public class RealtimeVideo : MonoBehaviour
 	public Material mat;
 	public Text textWH;
 	public Slider slider;
-	public RawImage image;
+	public List<VideoClip> clips = new List<VideoClip> ();
 
 	private VideoPlayer vplayer;
+	private MeshRenderer meshRender;
 	private int mx;
 	private int my;
 
@@ -29,47 +30,62 @@ public class RealtimeVideo : MonoBehaviour
 	public void createMesh () 
 	{
 		slider.transform.parent.gameObject.SetActive (false);
-		RenderTexture renderTex = new RenderTexture (mx, my, 1);
-		vplayer.targetTexture = renderTex;
-		image.texture = renderTex;
 
-		int w = renderTex.width;
-		int h = renderTex.height;
+		int sw = (int)(mx * .15f);
+		int sh = (int)(my * .15f);
 
 		List<Vector3> vertices = new List<Vector3>();
 		List<int> triangles = new List<int> ();
 		List<Vector2> uv_0 = new List<Vector2> ();
 		List<Vector2> uv_1 = new List<Vector2> ();
+		List<Color> colors = new List<Color> ();
 
-		for (int x = 0; x < w - 1; x++) {
-			for (int y = 0; y < h - 1; y++) {
+		for (int x = 0; x < mx - 1; x++) {
+			for (int y = 0; y < my - 1; y++) {
 
 				Vector3 p0 = new Vector3 (x, y, 0);
 				Vector3 p1 = new Vector3 (x, y+1, 0);
 				Vector3 p2 = new Vector3 (x+1, y+1, 0);
 				Vector3 p3 = new Vector3 (x+1, y, 0);
 
-				vertices.Add (p0 + new Vector3(-(w-1)/2f, -(h-1)/2f, 0));
-				vertices.Add (p1 + new Vector3(-(w-1)/2f, -(h-1)/2f, 0));
-				vertices.Add (p2 + new Vector3(-(w-1)/2f, -(h-1)/2f, 0));
-				vertices.Add (p3 + new Vector3(-(w-1)/2f, -(h-1)/2f, 0));
+				vertices.Add (p0 + new Vector3(-(mx-1)/2f, -(my-1)/2f, 0));
+				vertices.Add (p1 + new Vector3(-(mx-1)/2f, -(my-1)/2f, 0));
+				vertices.Add (p2 + new Vector3(-(mx-1)/2f, -(my-1)/2f, 0));
+				vertices.Add (p3 + new Vector3(-(mx-1)/2f, -(my-1)/2f, 0));
 
 				triangles.Add (vertices.Count - 4);
 				triangles.Add (vertices.Count - 3);
 				triangles.Add (vertices.Count - 2);
 				triangles.Add (vertices.Count - 1);
 
-				Vector2 uv = new Vector2 (((p0.x+p3.x)/2)/w, ((p0.y+p1.y)/2)/h);
+				Vector2 uv = new Vector2 (((p0.x+p3.x)/2)/mx, ((p0.y+p1.y)/2)/my);
 
 				uv_0.Add (uv);
 				uv_0.Add (uv);
 				uv_0.Add (uv);
 				uv_0.Add (uv);
 
-				uv_1.Add (new Vector2(0, 0));
-				uv_1.Add (new Vector2(0, 1));
-				uv_1.Add (new Vector2(1, 1));
-				uv_1.Add (new Vector2(1, 0));
+				if (p3.x <= sw && p1.y <= sh) {
+					uv_1.Add (new Vector2 (p0.x / sw, p0.y / sh));
+					uv_1.Add (new Vector2 (p1.x / sw, p1.y / sh));
+					uv_1.Add (new Vector2 (p2.x / sw, p2.y / sh));
+					uv_1.Add (new Vector2 (p3.x / sw, p3.y / sh));
+
+					colors.Add (new Color(1, 0, 0));
+					colors.Add (new Color(1, 0, 0));
+					colors.Add (new Color(1, 0, 0));
+					colors.Add (new Color(1, 0, 0));
+				} else {
+					uv_1.Add (new Vector2(0, 0));
+					uv_1.Add (new Vector2(0, 1));
+					uv_1.Add (new Vector2(1, 1));
+					uv_1.Add (new Vector2(1, 0));
+
+					colors.Add (new Color(0, 0, 0));
+					colors.Add (new Color(0, 0, 0));
+					colors.Add (new Color(0, 0, 0));
+					colors.Add (new Color(0, 0, 0));
+				}
 			}
 		}
 
@@ -79,22 +95,40 @@ public class RealtimeVideo : MonoBehaviour
 		mesh.SetIndices(triangles.ToArray(), MeshTopology.Quads, 0 );
 		mesh.SetUVs (0, uv_0);
 		mesh.SetUVs (1, uv_1);
+		mesh.SetColors (colors);
 
 		GameObject gc = new GameObject ();
 
 		MeshFilter meshFilter = gc.AddComponent<MeshFilter>();
 		meshFilter.sharedMesh = mesh;
 
-		MeshRenderer meshRender = gc.AddComponent<MeshRenderer> ();
+		meshRender = gc.AddComponent<MeshRenderer> ();
 		meshRender.material = mat;
-		meshRender.material.SetTexture ("_MainTex", renderTex);
 
-		float camSize = h / 2;
-		if (w * 1f / h > Camera.main.aspect) {
-			camSize *= (w * 1f / h) - Camera.main.aspect + 1;
+		float camSize = my / 2;
+		if (mx * 1f / my > Camera.main.aspect) {
+			camSize *= (mx * 1f / my) - Camera.main.aspect + 1;
 		}
-		Camera.main.orthographicSize = (int)camSize + 4;
+		Camera.main.orthographicSize = (int)camSize + 1;
 
+		vplayer.renderMode = VideoRenderMode.MaterialOverride;
+		vplayer.targetMaterialRenderer = meshRender;
+		vplayer.targetMaterialProperty = "_MainTex";
+		vplayer.loopPointReached += EndReached;
+
+		playVideo ();
+	}
+
+	void EndReached(UnityEngine.Video.VideoPlayer vp)
+	{
+		vp.Stop ();
+		playVideo ();
+	}
+
+	private void playVideo()
+	{
+		vplayer.clip = clips[Random.Range(0, clips.Count)];
+		vplayer.SetTargetAudioSource (0, vplayer.GetComponent<AudioSource>());
 		vplayer.Play ();
 	}
 
@@ -107,10 +141,21 @@ public class RealtimeVideo : MonoBehaviour
 		}
 	}
 
+	public void CF()
+	{
+		int cf = meshRender.material.GetInt ("_Colorful");
+		if (cf == 1) {
+			meshRender.material.SetInt ("_Colorful", 0);
+		} else {
+			meshRender.material.SetInt ("_Colorful", 1);
+		}
+	}
+
 	public void valueChange () 
 	{
 		mx = (int)(426 * slider.value);
 		my = (int)(240 * slider.value);
 		textWH.text = mx + "/" + my;
 	}
+
 }

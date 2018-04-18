@@ -6,7 +6,7 @@ public class WavePlane : MonoBehaviour
 
 	private Material material;
 
-	private float waveScale;
+//	private float waveScale;
 
 	private float step = .04f;
 
@@ -64,7 +64,7 @@ public class WavePlane : MonoBehaviour
 
 	void startWave(float x, float y)
 	{
-		waveScale = 0;
+//		waveScale = 0;
 
 		int curIndex = waveIndex;
 

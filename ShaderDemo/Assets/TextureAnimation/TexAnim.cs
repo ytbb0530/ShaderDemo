@@ -13,7 +13,7 @@ public class TexAnim : MonoBehaviour
 	private bool inCreate;
 	private int count = 0;
 	private int width = 50;
-	private int height = 10;
+//	private int height = 10;
 	private List<Material> mats = new List<Material>();
 
 	void Start () 

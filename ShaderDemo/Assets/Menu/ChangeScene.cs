@@ -1,77 +1,79 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
+
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class ChangeScene : MonoBehaviour 
 {
 
 	public void changeScene2Menu()
 	{
-		Application.LoadLevel("Menu/Menu");
+		SceneManager.LoadScene ("Menu/Menu");
 	}
 
 	public void changeScene2River()
 	{
-		Application.LoadLevel("River/River");
+		SceneManager.LoadScene ("River/River");
 	}
 
 	public void changeScene2ChinesePaint()
 	{
-		Application.LoadLevel("ChinesePaint/ChinesePaint");
+		SceneManager.LoadScene ("ChinesePaint/ChinesePaint");
 	}
 
 	public void changeScene2Snow()
 	{
-		Application.LoadLevel("Snow/Snow");
+		SceneManager.LoadScene ("Snow/Snow");
 	}
 
 	public void changeScene2Water()
 	{
-		Application.LoadLevel("Water/Water");
+		SceneManager.LoadScene ("Water/Water");
 	}
 
 	public void changeScene2MagicCube()
 	{
-		Application.LoadLevel("MagicCube/MagicCube");
+		SceneManager.LoadScene ("MagicCube/MagicCube");
 	}
 
 	public void changScene2Soil()
 	{
-		Application.LoadLevel("Soil/Soil");
+		SceneManager.LoadScene ("Soil/Soil");
 	}
 
 	public void changeScene2Character()
 	{
-		Application.LoadLevel("Character/Character");
+		SceneManager.LoadScene ("Character/Character");
 	}
 
 	public void changeScene2Cloth()
 	{
-		Application.LoadLevel("SurfaceShader/Cloth/SurfaceStudy_4");
+		SceneManager.LoadScene ("SurfaceShader/Cloth/SurfaceStudy_4");
 	}
 
 	public void changeScene2Siri()
 	{
-		Application.LoadLevel("SiriWave/SiriWave");
+		SceneManager.LoadScene ("SiriWave/SiriWave");
 	}
 
 	public void changeScene2ColorWar()
 	{
-		Application.LoadLevel("ColorAI/ColorAI");
+		SceneManager.LoadScene ("ColorAI/ColorAI");
 	}
 
 	public void changeScene2TexAnim()
 	{
-		Application.LoadLevel("TextureAnimation/TexAnim");
+		SceneManager.LoadScene ("TextureAnimation/TexAnim");
 	}
 
 	public void changeScene2Snake()
 	{
-		Application.LoadLevel ("Snake/Snake");
+		SceneManager.LoadScene  ("Snake/Snake");
 	}
 
 	public void changScene2Video()
 	{
-		Application.LoadLevel ("VideoPlayer/VideoPlayer");
+		SceneManager.LoadScene  ("VideoPlayer/VideoPlayer");
 	}
 
 }

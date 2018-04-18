@@ -355,7 +355,7 @@ namespace CSharpSynth.Synthesis
             //const int bytesPerSample = 2; //again we assume 16 bit audio
             int channels = from.GetLength(0);
             //int bufferSize = from.GetLength(1);
-            int sampleIndex = 0;
+//            int sampleIndex = 0;
             //UnitySynth
             //if (!(to.Length == bufferSize * channels * bytesPerSample))
             //    Debug.Log("Buffer sizes are mismatched.");

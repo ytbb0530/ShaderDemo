@@ -66,7 +66,7 @@ public class WaterSurface : MonoBehaviour
 
 		int count = (int)(15 / lineStep);
 
-		line.SetVertexCount (count);
+		line.positionCount = count;
 
 		float x = -lineStep * count / 2;
 

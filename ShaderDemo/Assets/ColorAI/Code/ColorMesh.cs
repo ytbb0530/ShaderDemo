@@ -9,7 +9,7 @@ public class ColorMesh : MonoBehaviour
 	private List<int> indices;
 	private List<Vector3> offsets;
 	private List<Vector3> tempVec;
-	private Material mat;
+//	private Material mat;
 	private List<Vector3> rootVertex = new List<Vector3>();
 
 	void Start()
@@ -18,7 +18,7 @@ public class ColorMesh : MonoBehaviour
 		indices = new List<int> ();
 		offsets = new List<Vector3> ();
 		tempVec = new List<Vector3> ();
-		mat = GetComponent<MeshRenderer> ().material;
+//		mat = GetComponent<MeshRenderer> ().material;
 	}
 
 	public void clear()

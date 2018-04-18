@@ -21,7 +21,7 @@ public class MLAgent : MonoBehaviour
 	private float award;
 
 	private const float AWARD_RATE = .05f;
-	private float[] HEAVY_RATE = new float[]{.5f, .4f, .1f};
+//	private float[] HEAVY_RATE = new float[]{.5f, .4f, .1f};
 	private const bool FORMAL = true;
 
 	void Awake()

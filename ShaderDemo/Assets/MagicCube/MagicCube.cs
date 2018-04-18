@@ -361,7 +361,9 @@ public class MagicCube : MonoBehaviour
 
 	public void click(Vector2 viewPos)
 	{
-		if (true) return;
+		bool debug = true;
+		if (debug) return;
+
 		if (inDrag) return;
 		if (inInertia) return;
 		if (focusFragmentIndex == FRAGMENT_INDEX.NULL) return;

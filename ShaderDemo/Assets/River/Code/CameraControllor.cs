@@ -98,8 +98,9 @@ public class CameraControllor : MonoBehaviour
 		Vector3 targetAngle = UpdateRotation ();
 
 		bool able = controlMirroActive (targetPos, targetAngle);
+		bool debug = false;
 
-		if(able && false)
+		if(able && debug)
 		{
 			UpdateMirroCam ();
 

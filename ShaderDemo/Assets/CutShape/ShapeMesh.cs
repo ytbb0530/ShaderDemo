@@ -49,7 +49,12 @@ public class ShapeVertex
 	public override bool Equals(object obj)  
 	{  
 		return index == ((ShapeVertex)obj).index && position == ((ShapeVertex)obj).position;
-	}  
+	} 
+	public override int GetHashCode ()
+	{
+		return base.GetHashCode ();
+	}
+
 }
 
 public class ShapeTriangle
@@ -105,6 +110,10 @@ public class ShapeTriangle
 		if (index != b.index) return false;
 		return vertices[0]==b.vertices[0] && vertices[1]==b.vertices[1] && vertices[2]==b.vertices[2];
 	}  
+	public override int GetHashCode ()
+	{
+		return base.GetHashCode ();
+	}
 }
 
 public class ShapeMesh

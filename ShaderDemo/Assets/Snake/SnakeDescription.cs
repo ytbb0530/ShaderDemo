@@ -21,9 +21,14 @@ public struct SnakeVector
 		y = (int)_pos.y;
 	}
 
-	public bool Equals(SnakeVector other)
+	public override bool Equals (object obj)
 	{
-		return other.x == x && other.y == y;
+		return ((SnakeVector)obj).x == x && ((SnakeVector)obj).y == y;
+	}
+
+	public override int GetHashCode ()
+	{
+		return base.GetHashCode ();
 	}
 
 	/// <summary>
@@ -133,18 +138,30 @@ public class SnakeCornerDescription
 
 	public static bool operator ==(SnakeCornerDescription a, SnakeCornerDescription b)
 	{
-		if (a.corner.Count != b.corner.Count) return false;
-		for (int i = 0; i < a.corner.Count; i++) {
-			if (a.corner [i] != b.corner [i]) {
-				return false;
-			}
-		}
-		return true;
+		if (object.Equals(a, null) && object.Equals(b, null)) return true; 
+		if (object.Equals(a, null) || object.Equals(b, null)) return false; 
+		return a.Equals (b);
 	}
 
 	public static bool operator !=(SnakeCornerDescription a, SnakeCornerDescription b)
 	{
 		return !(a == b);
+	}
+
+	public override bool Equals(object obj)  
+	{  
+		SnakeCornerDescription b = (SnakeCornerDescription)obj;
+		if (corner.Count != b.corner.Count) return false;
+		for (int i = 0; i < corner.Count; i++) {
+			if (corner [i] != b.corner [i]) {
+				return false;
+			}
+		}
+		return true;
+	} 
+	public override int GetHashCode ()
+	{
+		return base.GetHashCode ();
 	}
 
 }
@@ -175,12 +192,25 @@ public class SnakeFoodDescription
 
 	public static bool operator ==(SnakeFoodDescription a, SnakeFoodDescription b)
 	{
-		return a.food.Equals (b.food);
+		if (object.Equals(a, null) && object.Equals(b, null)) return true; 
+		if (object.Equals(a, null) || object.Equals(b, null)) return false; 
+		return a.Equals (b);
 	}
 
 	public static bool operator !=(SnakeFoodDescription a, SnakeFoodDescription b)
 	{
 		return !(a == b);
+	}
+
+	public override bool Equals (object obj)
+	{
+		SnakeFoodDescription b = (SnakeFoodDescription)obj;
+		return food.Equals (b.food);
+	}
+
+	public override int GetHashCode ()
+	{
+		return base.GetHashCode ();
 	}
 }
 
@@ -226,12 +256,25 @@ public class SnakeHeadDescription
 
 	public static bool operator ==(SnakeHeadDescription a, SnakeHeadDescription b)
 	{
-		return a.head.Equals (b.head);
+		if (object.Equals(a, null) && object.Equals(b, null)) return true; 
+		if (object.Equals(a, null) || object.Equals(b, null)) return false; 
+		return a.Equals (b);
 	}
 
 	public static bool operator !=(SnakeHeadDescription a, SnakeHeadDescription b)
 	{
 		return !(a == b);
+	}
+
+	public override bool Equals (object obj)
+	{
+		SnakeHeadDescription b = (SnakeHeadDescription)obj;
+		return head.Equals (b.head);
+	}
+
+	public override int GetHashCode ()
+	{
+		return base.GetHashCode ();
 	}
 }
 

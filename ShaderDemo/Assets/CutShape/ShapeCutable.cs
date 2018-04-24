@@ -168,9 +168,17 @@ public class ShapeCutable : MonoBehaviour
 		if (triangleList.Count == 0) return;
 
 		ShapeMesh sm = new ShapeMesh (triangleList);
-		GameObject obj = GameObject.Instantiate (gameObject, transform.parent);
-		MeshFilter filter = obj.GetComponent<MeshFilter> ();
-		filter.sharedMesh = sm.mesh;
+		List<ShapeMesh> subs = sm.GetSubMeshes ();
+		foreach (ShapeMesh subMesh in subs) {
+			GameObject obj = GameObject.Instantiate (gameObject, transform.parent);
+			MeshFilter filter = obj.GetComponent<MeshFilter> ();
+			filter.sharedMesh = subMesh.mesh;
+
+			ShapeAnim anim = obj.AddComponent<ShapeAnim> ();
+			Vector3 forward = subMesh.vertices [subMesh.vertices.Count / 2].position;
+			forward.y = 0;
+			anim.moveBy (forward);
+		}
 	}
 
 }

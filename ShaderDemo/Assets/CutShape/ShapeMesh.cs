@@ -48,6 +48,7 @@ public class ShapeVertex
 	}
 	public override bool Equals(object obj)  
 	{  
+//		return position == ((ShapeVertex)obj).position;
 		return index == ((ShapeVertex)obj).index && position == ((ShapeVertex)obj).position;
 	} 
 	public override int GetHashCode ()
@@ -62,6 +63,7 @@ public class ShapeTriangle
 	public int index;
 	public ShapeMesh mesh;
 	public ShapeVertex[] vertices = new ShapeVertex[3];
+	public int tag;
 	public bool valid{get{ return vertices [0] != null && vertices [1] != null && vertices [2] != null;}}
 
 	public ShapeTriangle ()
@@ -73,6 +75,7 @@ public class ShapeTriangle
 	{
 		this.index = index;
 		this.mesh = mesh;
+		this.tag = 0;
 		vertices = new ShapeVertex[3]{ v1, v2, v3};
 	}
 
@@ -193,54 +196,58 @@ public class ShapeMesh
 
 	public List<ShapeMesh> GetSubMeshes()
 	{
-		List<List<ShapeTriangle>> borderTriangles = new List<List<ShapeTriangle>> ();
-		for (;;) {
-			List<ShapeTriangle> borders = new List<ShapeTriangle> ();
-			List<ShapeTriangle> unborders = new List<ShapeTriangle> ();
-
-			borderTriangles.Add (borders);
-			borderTriangles.Add (unborders);
-
-			List<ShapeTriangle> all = null;
-			if (borderTriangles.Count == 2) {
-				all = triangles;
-			} else {
-				all = borderTriangles[borderTriangles.Count - 1];
-			}
-			borders.Add (all [0]);
-			BorderTriangle (all, borders, unborders);
-
-			if (unborders.Count == 0) break;
+		triangles [0].tag = 1;
+		for (int i = 1; i < triangles.Count; i++) {
+			triangles [i].tag = 0;
 		}
 
-		List<ShapeMesh> meshes = new List<ShapeMesh> ();
-		foreach (List<ShapeTriangle> tris in borderTriangles) {
-			ShapeMesh sm = new ShapeMesh (tris);
-			meshes.Add (sm);
-		}
+		int maxTag = 1;
+		for (int i = 0; i < triangles.Count; i++) {
+			ShapeTriangle a = triangles [i];
 
-		return meshes;
-	}
+			for (int j = i + 1; j < triangles.Count; j++) {
+				ShapeTriangle b = triangles [j];
 
-	private void BorderTriangle (List<ShapeTriangle> all, List<ShapeTriangle> borderList, List<ShapeTriangle> unborderList)
-	{
-		List<ShapeTriangle> temp = new List<ShapeTriangle> ();
-		foreach (ShapeTriangle a in borderList) {
-			foreach (ShapeTriangle b in unborderList) {
 				if (a.Border (b)) {
-					temp.Add (b);
+					if (a.tag != 0) {
+						maxTag = a.tag > maxTag ? a.tag : maxTag;
+						if (b.tag != 0) {
+							foreach (ShapeTriangle t in triangles) {
+								if (t.tag == b.tag) {
+									t.tag = a.tag;
+								}
+							}
+						}
+						b.tag = a.tag;
+					} else {
+						if (b.tag == 0) {
+							maxTag++;
+							b.tag = maxTag;
+						}
+						a.tag = b.tag;
+					}
 				}
 			}
+
 		}
 
-		foreach (ShapeTriangle tri in temp) {
-			unborderList.Remove (tri);
-			borderList.Add (tri);
+		Dictionary<int, List<ShapeTriangle>> resultTris = new Dictionary<int, List<ShapeTriangle>> ();
+
+		for (int i = 0; i < triangles.Count; i++) {
+			int tag = triangles [i].tag;
+			if (!resultTris.ContainsKey(tag)) {
+				resultTris[tag] = new List<ShapeTriangle>();
+			}
+			resultTris [tag].Add (triangles[i]);
 		}
 
-		if (temp.Count > 0) {
-			BorderTriangle (all, borderList, unborderList);
+
+		List<ShapeMesh> meshes = new List<ShapeMesh> ();
+		foreach (List<ShapeTriangle> subTris in resultTris.Values) {
+			ShapeMesh sm = new ShapeMesh (subTris);
+			meshes.Add (sm);
 		}
+		return meshes;
 	}
 
 	private int GetVertexIndex (List<Vector3> list, Vector3 pos)
